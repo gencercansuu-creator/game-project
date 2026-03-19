@@ -1,0 +1,1239 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelime Avı - Eğlenceli Kelime Tahmin Oyunu</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 50%, #d946ef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #ffffff, #f3e8ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .mode-selector {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 30px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .mode-btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+        }
+
+        .mode-btn.active {
+            background: linear-gradient(45deg, #ec4899, #d946ef);
+            transform: scale(1.05);
+        }
+
+        .game-area {
+            display: none;
+        }
+
+        .game-area.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .word-display {
+            font-size: 3em;
+            font-weight: bold;
+            letter-spacing: 10px;
+            margin: 30px 0;
+            min-height: 90px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            font-family: monospace;
+        }
+
+        .hint {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px 25px;
+            border-radius: 15px;
+            display: inline-block;
+            font-style: italic;
+        }
+
+        .group-mode {
+            display: none;
+        }
+
+        .group-mode.active {
+            display: block;
+        }
+
+        .players-container {
+            display: flex;
+            gap: 12px;
+            margin: 25px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .player-score {
+            background: rgba(255, 255, 255, 0.25);
+            padding: 12px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            min-width: 90px;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        /* ✅ DÜZELTİLDİ: active class kullanıldı (current-player değil) */
+        .player-score.active {
+            background: linear-gradient(45deg, #ec4899, #d946ef);
+            border-color: rgba(255, 255, 255, 0.5);
+            transform: scale(1.1);
+        }
+
+        .input-group {
+            margin: 25px 0;
+        }
+
+        input[type="text"] {
+            padding: 18px 25px;
+            font-size: 1.3em;
+            border: none;
+            border-radius: 50px;
+            width: 280px;
+            margin-right: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            text-align: center;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #333;
+        }
+
+        input[type="text"]::placeholder {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #999;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            box-shadow: 0 0 20px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn {
+            padding: 18px 35px;
+            border: none;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: linear-gradient(45deg, #ec4899, #d946ef);
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 5px 15px rgba(236, 72, 153, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(236, 72, 153, 0.5);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .message {
+            font-size: 1.3em;
+            margin: 25px 0;
+            padding: 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            min-height: 25px;
+        }
+
+        .success { 
+            background: rgba(34, 197, 94, 0.3);
+            border: 2px solid rgba(34, 197, 94, 0.5);
+        }
+        .error { 
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid rgba(239, 68, 68, 0.5);
+        }
+        .info { 
+            background: rgba(59, 130, 246, 0.3);
+            border: 2px solid rgba(59, 130, 246, 0.5);
+        }
+
+        .score-board {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin: 25px 0;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .player-names {
+            margin: 15px 0;
+            font-size: 1em;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .player-names input {
+            width: 100px !important;
+            padding: 8px 12px !important;
+            font-size: 0.9em !important;
+            letter-spacing: 0 !important;
+            margin: 0 !important;
+            border-radius: 20px !important;
+            background: rgba(255, 255, 255, 0.85) !important;
+        }
+
+        @media (max-width: 650px) {
+            .container { padding: 25px 20px; margin: 10px; }
+            h1 { font-size: 2.2em; }
+            .word-display { 
+                font-size: 2.2em; 
+                letter-spacing: 6px; 
+                padding: 15px; 
+            }
+            input[type="text"] { 
+                width: 220px; 
+                margin-bottom: 15px;
+                margin-right: 0;
+                display: block;
+                margin-left: auto;
+            }
+            .mode-selector { flex-direction: column; align-items: center; }
+            .players-container { gap: 8px; }
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0) scale(1); }
+            40% { transform: translateY(-12px) scale(1.05); }
+            60% { transform: translateY(-6px) scale(1.02); }
+        }
+
+        .bounce { animation: bounce 0.8s ease; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .shake { animation: shake 0.5s ease-in-out; }
+
+        .fade-in { animation: fadeIn 0.4s ease; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Zamanlayıcı */
+        .timer-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 10px 0 18px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50px;
+            padding: 10px 20px;
+        }
+
+        .timer-icon { font-size: 1.3em; }
+
+        .timer-track {
+            flex: 1;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .timer-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 1s linear, background 0.5s;
+            background: linear-gradient(90deg, #10b981, #34d399);
+        }
+
+        .timer-fill.warning  { background: linear-gradient(90deg, #f59e0b, #fbbf24); }
+        .timer-fill.danger   { background: linear-gradient(90deg, #ef4444, #f87171); animation: pulse 0.5s infinite alternate; }
+
+        @keyframes pulse { from { opacity: 1; } to { opacity: 0.5; } }
+
+        .timer-text {
+            font-weight: bold;
+            font-size: 1.1em;
+            min-width: 36px;
+            text-align: right;
+        }
+
+        /* Skor geçmişi modal */
+        .lb-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lb-modal-overlay.visible { display: flex; animation: fadeIn 0.3s ease; }
+
+        .lb-modal {
+            background: linear-gradient(145deg, #4c1d95, #831843);
+            border-radius: 24px;
+            padding: 32px 28px;
+            max-width: 480px;
+            width: 92%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5);
+            animation: slideUp 0.35s ease;
+        }
+
+        .lb-modal h2 { font-size: 1.6em; margin-bottom: 18px; }
+
+        .lb-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95em;
+        }
+
+        .lb-table th {
+            background: rgba(255,255,255,0.15);
+            padding: 10px 8px;
+            text-align: left;
+            border-radius: 6px;
+        }
+
+        .lb-table td {
+            padding: 9px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            vertical-align: middle;
+        }
+
+        .lb-table tr:first-child td { border-top: none; }
+        .lb-table tr.top1 td { background: rgba(251,191,36,0.2); font-weight: bold; }
+        .lb-table tr.top2 td { background: rgba(209,213,219,0.15); }
+        .lb-table tr.top3 td { background: rgba(180,120,60,0.15); }
+
+        .lb-badge {
+            display: inline-block;
+            padding: 2px 9px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+        }
+
+        .lb-badge.easy   { background: rgba(34,197,94,0.3);  border: 1px solid rgba(34,197,94,0.5); }
+        .lb-badge.medium { background: rgba(251,191,36,0.3); border: 1px solid rgba(251,191,36,0.5); }
+        .lb-badge.hard   { background: rgba(239,68,68,0.3);  border: 1px solid rgba(239,68,68,0.5); }
+
+        .lb-empty { opacity: 0.6; padding: 24px 0; font-size: 1.05em; }
+
+        .lb-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-ghost {
+            padding: 12px 24px;
+            border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 50px;
+            background: transparent;
+            color: white;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-ghost:hover { background: rgba(255,255,255,0.15); }
+
+        /* Denenen harfler */
+        .guessed-letters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin: 12px 0;
+            min-height: 36px;
+        }
+
+        .guessed-letter {
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.95em;
+            font-family: monospace;
+            transition: transform 0.15s ease;
+            animation: popIn 0.2s ease;
+        }
+
+        @keyframes popIn {
+            from { transform: scale(0); opacity: 0; }
+            to   { transform: scale(1); opacity: 1; }
+        }
+
+        .guessed-letter.hit {
+            background: rgba(34, 197, 94, 0.35);
+            border: 2px solid rgba(34, 197, 94, 0.7);
+        }
+
+        .guessed-letter.miss {
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid rgba(239, 68, 68, 0.6);
+            text-decoration: line-through;
+            opacity: 0.75;
+        }
+
+        .guessed-label {
+            font-size: 0.8em;
+            opacity: 0.7;
+            margin-bottom: 4px;
+        }
+
+        /* Skor özeti modal */
+        .score-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .score-modal-overlay.visible {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .score-modal {
+            background: linear-gradient(135deg, #6d28d9, #be185d);
+            border-radius: 24px;
+            padding: 36px 32px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+            animation: slideUp 0.35s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(40px); opacity: 0; }
+            to   { transform: translateY(0);    opacity: 1; }
+        }
+
+        .score-modal h2 {
+            font-size: 1.8em;
+            margin-bottom: 6px;
+        }
+
+        .score-modal .winner-name {
+            font-size: 1.3em;
+            opacity: 0.9;
+            margin-bottom: 24px;
+        }
+
+        .modal-scores {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 28px;
+        }
+
+        .modal-score-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .modal-score-row.winner {
+            background: rgba(251, 191, 36, 0.3);
+            border: 2px solid rgba(251, 191, 36, 0.6);
+        }
+
+        .modal-score-row .rank { opacity: 0.8; margin-right: 8px; }
+        .modal-score-row .pts  { font-size: 1.2em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 Kelime Avı 🎮</h1>
+        
+        <div class="mode-selector">
+            <button class="mode-btn active" onclick="selectMode('single', event)">👤 Tek Oyuncu</button>
+            <button class="mode-btn" onclick="selectMode('group', event)">👥 Grup Oyunu</button>
+        </div>
+
+        <!-- Tek Oyuncu Modu -->
+        <div id="singleMode" class="game-area active">
+            <div class="hint" id="hint">İpucu: Hayvanlar aleminin kralı 🦁</div>
+            <div class="word-display" id="wordDisplay">_ _ _ _</div>
+
+            <!-- Zamanlayıcı -->
+            <div class="timer-bar">
+                <span class="timer-icon">⏱️</span>
+                <div class="timer-track">
+                    <div class="timer-fill" id="timerFill"></div>
+                </div>
+                <span class="timer-text" id="timerText">60</span>
+            </div>
+            
+            <div class="input-group">
+                <input type="text" id="letterInput" maxlength="1" placeholder="Harf (İ,Ş,Ğ...)" autocomplete="off">
+                <button class="btn" onclick="guessLetter()">Tahmin Et</button>
+            </div>
+            
+            <div class="score-board">
+                <div>Puan: <span id="score">0</span></div>
+                <div>Deneme: <span id="attempts">10</span></div>
+                <div>Doğru: <span id="correct">0</span></div>
+                <div>Seviye: <span id="level">Kolay</span></div>
+            </div>
+
+            <div class="guessed-label">Denenen harfler:</div>
+            <div class="guessed-letters" id="guessedLettersDisplay"></div>
+            
+            <div class="message" id="message"></div>
+            <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:8px;">
+                <button class="btn" onclick="newGame()">🆕 Yeni Oyun</button>
+                <button class="btn" onclick="openLeaderboard()" style="background:rgba(255,255,255,0.2);">🏆 Skor Tablosu</button>
+            </div>
+        </div>
+
+        <!-- Grup Modu -->
+        <div id="groupMode" class="game-area group-mode">
+            <div class="hint" id="groupHint">İpucu: Başkent şehri 🏛️</div>
+            <div class="word-display" id="groupWordDisplay">_ _ _ _ _ _ _</div>
+            
+            <div class="player-names">
+                <span>Oyuncular:</span>
+                <input type="text" id="player1Name" placeholder="Oyuncu 1" maxlength="10">
+                <input type="text" id="player2Name" placeholder="Oyuncu 2" maxlength="10">
+                <input type="text" id="player3Name" placeholder="Oyuncu 3" maxlength="10">
+            </div>
+            
+            <div class="players-container" id="playersContainer"></div>
+            
+            <div class="input-group">
+                <input type="text" id="groupLetterInput" maxlength="1" placeholder="Harf (İ,Ş,Ğ...)" autocomplete="off">
+                <button id="groupGuessBtn" class="btn" onclick="groupGuessLetter()">Tahmin Et</button>
+            </div>
+
+            <div class="guessed-label">Bu turda denenen harfler:</div>
+            <div class="guessed-letters" id="groupGuessedLettersDisplay"></div>
+            
+            <div class="message" id="groupMessage"></div>
+            <button class="btn" onclick="newGroupGame()">🆕 Yeni Grup Oyunu</button>
+        </div>
+    </div>
+
+    <!-- Grup skor özeti modal -->
+    <div class="score-modal-overlay" id="scoreModalOverlay">
+        <div class="score-modal">
+            <h2 id="modalTitle">🏆 Tur Bitti!</h2>
+            <div class="winner-name" id="modalWinner"></div>
+            <div class="modal-scores" id="modalScores"></div>
+            <button class="btn" onclick="closeScoreModal()">🆕 Yeni Oyun</button>
+        </div>
+    </div>
+
+    <!-- Skor geçmişi / leaderboard modal -->
+    <div class="lb-modal-overlay" id="lbModalOverlay">
+        <div class="lb-modal">
+            <h2>🏆 Skor Tablosu</h2>
+            <div id="lbContent"></div>
+            <div class="lb-actions">
+                <button class="btn" onclick="closeLb()">Kapat</button>
+                <button class="btn-ghost" onclick="clearLeaderboard()">🗑️ Sıfırla</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============================================================
+        // ✅ FIX 1: normalizeTurkish — toLocaleUpperCase('tr-TR') kullan
+        // Böylece küçük 'i' → 'İ' doğru dönüşür (toUpperCase() bunu yapamaz)
+        // ============================================================
+        function normalizeTurkish(text) {
+            return (text ?? '').toLocaleUpperCase('tr-TR').trim();
+        }
+
+        // ✅ FIX 2: isValidTurkishLetter — normalizeTurkish kullanıyor zaten
+        function isValidTurkishLetter(char) {
+            const c = normalizeTurkish(char);
+            return /^[A-ZÇĞİÖŞÜ]$/.test(c);
+        }
+
+        // ============================================================
+        // ✅ FIX 3: Tüm kelimeler Türkçe karakterli hale getirildi
+        // Artık KEDI → KEDİ, MUZIK → MÜZİK vb. — normalize edilmiş halde
+        // ============================================================
+        const words = {
+            easy:   ['ASLAN', 'ELMA', 'EV', 'ARABA', 'KEDİ', 'KÖPEK', 'GÜNEŞ', 'AY', 'YILDIZ', 'BULUT'],
+            medium: ['TELEFON', 'BİLGİSAYAR', 'OKUL', 'ARKADAŞ', 'MÜZİK', 'RESİM', 'DANS', 'FUTBOL', 'OYUN', 'PARTİ'],
+            // ✅ FIX: BİLGİSAYAR, TELEFON, MÜZİK medium'da zaten var — hard'a özgü kelimeler kullanıldı
+            hard:   ['İSTANBUL', 'ANKARA', 'PROGRAMLAMA', 'TEKNOLOJİ', 'SANAT', 'JAVASCRIPT', 'HTML', 'MİMARLIK', 'FELSEFE', 'COĞRAFYA']
+        };
+
+        // ✅ FIX 4: hints — tüm kelimeler Türkçe karakterli + JAVASCRIPT eklendi
+        const hints = {
+            'ASLAN': 'Hayvanlar aleminin kralı 🦁',
+            'ELMA': 'Kırmızı ve sulu meyve 🍎',
+            'EV': 'Ailemizle yaşadığımız yer 🏠',
+            'ARABA': '4 tekerlekli ulaşım aracı 🚗',
+            'KEDİ': 'Miyavlayan evcil hayvan 🐱',
+            'KÖPEK': 'Sadık dostumuz 🐶',
+            'GÜNEŞ': 'Gündüzün ışık kaynağı ☀️',
+            'AY': 'Gecenin güzel ışığı 🌙',
+            'YILDIZ': 'Gökyüzünde parlayan noktalar ⭐',
+            'BULUT': 'Gökyüzünde yüzen pamuksu yapılar ☁️',
+            'TELEFON': 'Uzaktan konuşma cihazı 📱',
+            'BİLGİSAYAR': 'Dijital yardımcı 💻',
+            'OKUL': 'Bilgi öğrendiğimiz yer 🏫',
+            'ARKADAŞ': 'En iyi sırdaş 😊',
+            'MÜZİK': 'Ruhumuzu dinlendiren sesler 🎵',
+            'RESİM': 'Renklerle hikaye anlatır 🎨',
+            'DANS': 'Müzikle ritim tutma 💃',
+            'FUTBOL': 'Dünyanın en popüler oyunu ⚽',
+            'OYUN': 'Eğlencenin ta kendisi 🎮',
+            'PARTİ': 'Hep birlikte kutlama 🎉',
+            'İSTANBUL': 'İki kıtayı birleştiren şehir 🌉',
+            'ANKARA': 'Ülkemizin başkenti 🏛️',
+            'PROGRAMLAMA': 'Kod yazma sanatı 💾',
+            'TEKNOLOJİ': 'Geleceğin anahtarı 🚀',
+            'SANAT': 'Duyguları ifade etme yolu 🖼️',
+            'HTML': 'Web sayfalarının iskeleti 🌐',
+            // ✅ FIX 5: JAVASCRIPT + hard kelimeler hints'e eklendi
+            'JAVASCRIPT': 'Tarayıcıda çalışan web programlama dili 🟨',
+            'MİMARLIK':   'Bina tasarlama ve inşa etme sanatı 🏗️',
+            'FELSEFE':    'Varlık ve bilgiyi sorgulayan düşünce dalı 🤔',
+            'COĞRAFYA':   'Yeryüzünü inceleyen bilim dalı 🗺️'
+        };
+
+        // Oyun durumu
+        let currentMode = 'single';
+        let currentWord = '';
+        let displayWord = [];
+        let attempts = 10;
+        let score = 0;
+        let correctGuesses = 0;
+        let gameActive = false;
+        let currentLevel = 'easy';
+        let guessedLetters = new Set();
+
+        // Zamanlayıcı
+        let timerInterval = null;
+        let timerSeconds = 60;
+        let timerMax = 60;
+
+        // Grup modu
+        let players = [];
+        let currentPlayerIndex = 0;
+        let groupAttempts = 8;
+        let groupGuessedLetters = new Set(); // ✅ FIX: grup modu için ayrı set
+        let groupLocked = false;             // turn-lock: tur geçişi sırasında input engellenir
+        let groupTurnTimeoutId = null;       // aktif setTimeout id — çakışmayı önlemek için
+
+        document.addEventListener('DOMContentLoaded', function () {
+            newGame();
+            setupInputEvents();
+            setupPlayerNameInputs();
+        });
+
+        function setupPlayerNameInputs() {
+            ['player1Name', 'player2Name', 'player3Name'].forEach((id, index) => {
+                const input = document.getElementById(id);
+                input.value = `Oyuncu ${index + 1}`;
+                input.addEventListener('input', updatePlayerNames);
+            });
+        }
+
+        // ============================================================
+        // ✅ FIX 6: updatePlayerNames — players[0]?.score kullan (players?.score değil)
+        // ============================================================
+        function updatePlayerNames() {
+            const p1 = document.getElementById('player1Name').value.trim() || 'Oyuncu 1';
+            const p2 = document.getElementById('player2Name').value.trim() || 'Oyuncu 2';
+            const p3 = document.getElementById('player3Name').value.trim() || 'Oyuncu 3';
+            players = [
+                { name: p1, score: players[0]?.score || 0 },
+                { name: p2, score: players[1]?.score || 0 },
+                { name: p3, score: players[2]?.score || 0 }
+            ];
+            if (currentMode === 'group') {
+                updatePlayersDisplay();
+            }
+        }
+
+        // ✅ event parametresi olarak alındı (global event'e güvenmek yerine)
+        function selectMode(mode, event) {
+            currentMode = mode;
+            document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            document.getElementById('singleMode').classList.toggle('active', mode === 'single');
+            document.getElementById('groupMode').classList.toggle('active', mode === 'group');
+
+            if (mode === 'group') {
+                updatePlayerNames();
+                initGroupMode();
+            } else {
+                newGame();
+            }
+        }
+
+        function setupInputEvents() {
+            document.getElementById('letterInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') guessLetter();
+            });
+            document.getElementById('groupLetterInput').addEventListener('keypress', function (e) {
+                if (e.key === 'Enter') groupGuessLetter();
+            });
+
+            // Input otomatik normalize
+            ['letterInput', 'groupLetterInput'].forEach(id => {
+                document.getElementById(id).addEventListener('input', function () {
+                    const pos = this.selectionStart;
+                    this.value = normalizeTurkish(this.value);
+                    this.setSelectionRange(pos, pos);
+                });
+            });
+        }
+
+        function getRandomWord() {
+            const wordList = words[currentLevel];
+            return wordList[Math.floor(Math.random() * wordList.length)];
+        }
+
+        function initDisplay() {
+            displayWord = currentWord.split('').map(() => '_');
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const id = currentMode === 'single' ? 'wordDisplay' : 'groupWordDisplay';
+            document.getElementById(id).textContent = displayWord.join(' ');
+        }
+
+        function updateHint() {
+            const id = currentMode === 'single' ? 'hint' : 'groupHint';
+            // currentWord zaten normalize edilmiş halde tutuluyor
+            document.getElementById(id).textContent = hints[currentWord] || 'İpucu hazırlanıyor... 🤔';
+        }
+
+        // ============================================================
+        // ZAMANLAYICI
+        // ============================================================
+        function getTimerDuration() {
+            return currentLevel === 'hard' ? 45 : currentLevel === 'medium' ? 60 : 75;
+        }
+
+        function startTimer() {
+            stopTimer();
+            timerMax = getTimerDuration();
+            timerSeconds = timerMax;
+            updateTimerUI();
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerUI();
+                if (timerSeconds <= 0) {
+                    stopTimer();
+                    gameActive = false;
+                    saveScore(score, false); // süre doldu — kazanmadı
+                    showMessage(`⏰ Süre doldu! Kelime: "${currentWord}" — Puan: ${score}`, 'error');
+                }
+            }, 1000);
+        }
+
+        function stopTimer() {
+            if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+        }
+
+        function updateTimerUI() {
+            const fill = document.getElementById('timerFill');
+            const text = document.getElementById('timerText');
+            if (!fill || !text) return;
+            const pct = (timerSeconds / timerMax) * 100;
+            fill.style.width = pct + '%';
+            text.textContent = timerSeconds;
+            fill.classList.remove('warning', 'danger');
+            if (pct <= 25) fill.classList.add('danger');
+            else if (pct <= 50) fill.classList.add('warning');
+        }
+
+        // ============================================================
+        // SKOR GEÇMİŞİ (localStorage)
+        // ============================================================
+        const LS_KEY = 'kelimeAviScores';
+
+        function loadScores() {
+            try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+            catch { return []; }
+        }
+
+        function saveScore(pts, won) {
+            if (pts <= 0 && !won) return; // sıfır puanlı kayıp kaydetme
+            const scores = loadScores();
+            const levelLabels = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };
+            scores.push({
+                score: pts,
+                won,
+                level: currentLevel,
+                levelLabel: levelLabels[currentLevel],
+                word: currentWord,
+                timeLeft: timerSeconds,
+                date: new Date().toLocaleDateString('tr-TR', { day:'2-digit', month:'2-digit', year:'2-digit' })
+            });
+            // En yüksek 50 skoru tut, puana göre sıralı
+            scores.sort((a, b) => b.score - a.score);
+            scores.splice(50);
+            try { localStorage.setItem(LS_KEY, JSON.stringify(scores)); } catch {}
+        }
+
+        function openLeaderboard() {
+            const scores = loadScores();
+            const el = document.getElementById('lbContent');
+            if (scores.length === 0) {
+                el.innerHTML = '<div class="lb-empty">Henüz kayıtlı skor yok.<br>Bir oyun bitir, burada görün! 🎮</div>';
+            } else {
+                const medals = ['🥇','🥈','🥉'];
+                const rows = scores.slice(0, 10).map((s, i) => {
+                    const rowClass = i === 0 ? 'top1' : i === 1 ? 'top2' : i === 2 ? 'top3' : '';
+                    const result = s.won ? '✅' : '❌';
+                    const timeBonus = s.won ? `+${s.timeLeft}sn` : '—';
+                    return `<tr class="${rowClass}">
+                        <td>${medals[i] || (i+1) + '.'}</td>
+                        <td><strong>${s.score}</strong></td>
+                        <td><span class="lb-badge ${s.level}">${s.levelLabel}</span></td>
+                        <td>${result} ${s.word}</td>
+                        <td>${timeBonus}</td>
+                        <td style="opacity:0.7;font-size:0.85em">${s.date}</td>
+                    </tr>`;
+                }).join('');
+                el.innerHTML = `
+                    <table class="lb-table">
+                        <thead><tr>
+                            <th>#</th><th>Puan</th><th>Seviye</th><th>Kelime</th><th>Kalan</th><th>Tarih</th>
+                        </tr></thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    <div style="opacity:0.6;font-size:0.82em;margin-top:10px;text-align:right">
+                        Toplam ${scores.length} oyun kaydedildi
+                    </div>`;
+            }
+            document.getElementById('lbModalOverlay').classList.add('visible');
+        }
+
+        function closeLb() {
+            document.getElementById('lbModalOverlay').classList.remove('visible');
+        }
+
+        function clearLeaderboard() {
+            if (!confirm('Tüm skor geçmişi silinsin mi?')) return;
+            try { localStorage.removeItem(LS_KEY); } catch {}
+            openLeaderboard(); // boş hali göster
+        }
+
+        // ============================================================
+        // DENENEN HARFLER GÖSTERGESİ
+        // ============================================================
+        function updateGuessedLettersDisplay() {
+            const el = document.getElementById('guessedLettersDisplay');
+            if (!el) return;
+            el.innerHTML = [...guessedLetters].map(letter => {
+                const isHit = currentWord.includes(letter);
+                return `<div class="guessed-letter ${isHit ? 'hit' : 'miss'}" title="${isHit ? 'Doğru' : 'Yanlış'}">${letter}</div>`;
+            }).join('');
+        }
+
+        function updateGroupGuessedLettersDisplay() {
+            const el = document.getElementById('groupGuessedLettersDisplay');
+            if (!el) return;
+            el.innerHTML = [...groupGuessedLetters].map(letter => {
+                const isHit = currentWord.includes(letter);
+                return `<div class="guessed-letter ${isHit ? 'hit' : 'miss'}">${letter}</div>`;
+            }).join('');
+        }
+
+        // ============================================================
+        // GRUP SKOR ÖZETİ MODAL
+        // ============================================================
+        function showScoreModal(winnerName) {
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+            const medals = ['🥇', '🥈', '🥉'];
+
+            document.getElementById('modalTitle').textContent = winnerName ? '🏆 Kelime Bulundu!' : '💥 Süre Doldu!';
+            document.getElementById('modalWinner').textContent = winnerName
+                ? `${winnerName} bu turu kazandı!`
+                : `Kimse kelimeyi bulamadı.`;
+
+            document.getElementById('modalScores').innerHTML = sorted.map((p, i) => {
+                const isWinner = p.name === sorted[0].name;
+                return `<div class="modal-score-row ${isWinner ? 'winner' : ''}">
+                    <span><span class="rank">${medals[i] || '  '}</span>${p.name}</span>
+                    <span class="pts">${p.score} puan</span>
+                </div>`;
+            }).join('');
+
+            document.getElementById('scoreModalOverlay').classList.add('visible');
+        }
+
+        function closeScoreModal() {
+            document.getElementById('scoreModalOverlay').classList.remove('visible');
+            newGroupGame();
+        }
+
+        // ============================================================
+        // TEK OYUNCU
+        // ============================================================
+        function guessLetter() {
+            const input = document.getElementById('letterInput');
+            const letter = normalizeTurkish(input.value);
+            input.value = '';
+            input.focus();
+
+            if (!letter || !isValidTurkishLetter(letter)) {
+                showMessage('❌ Lütfen geçerli bir Türkçe harf girin! (A-Z, Ç,Ğ,İ,Ö,Ş,Ü)', 'error');
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 500);
+                return;
+            }
+
+            if (!gameActive) {
+                showMessage('⚠️ Yeni oyun başlatın!', 'info');
+                return;
+            }
+
+            // ✅ FIX: daha önce tahmin edilmiş harf kontrolü
+            if (guessedLetters.has(letter)) {
+                showMessage(`⚠️ "${letter}" harfini zaten denediniz!`, 'info');
+                return;
+            }
+            guessedLetters.add(letter);
+
+            if (currentWord.includes(letter)) {
+                let foundCount = 0;
+                for (let i = 0; i < currentWord.length; i++) {
+                    if (currentWord[i] === letter) {
+                        displayWord[i] = letter;
+                        foundCount++;
+                    }
+                }
+                score += foundCount * 15;
+                correctGuesses++;
+                updateScore();
+                updateDisplay();
+                updateGuessedLettersDisplay(); // ← yeni
+
+                document.getElementById('wordDisplay').classList.add('bounce');
+                setTimeout(() => document.getElementById('wordDisplay').classList.remove('bounce'), 800);
+
+                if (!displayWord.includes('_')) {
+                    stopTimer();
+                    // Süre bonusu: kalan her saniye +2 puan
+                    const timeBonus = timerSeconds * 2;
+                    score += timeBonus;
+                    updateScore();
+                    saveScore(score, true);
+                    showMessage(`🎉 "${currentWord}" bildiniz! Süre bonusu: +${timeBonus} — Toplam: ${score}`, 'success');
+                    gameActive = false;
+                    checkLevelUp();
+                    return;
+                }
+                showMessage(`✅ ${foundCount} harf bulundu! +${foundCount * 15} puan`, 'success');
+            } else {
+                attempts--;
+                updateAttempts();
+                updateGuessedLettersDisplay(); // ← yeni
+                showMessage(`❌ Yanlış harf! Kalan deneme: ${attempts}`, 'error');
+                if (attempts === 0) {
+                    stopTimer();
+                    saveScore(score, false);
+                    showMessage(`💥 Oyun bitti! Kelime: "${currentWord}" — Toplam Puan: ${score}`, 'error');
+                    gameActive = false;
+                }
+            }
+        }
+
+        // ============================================================
+        // TURN-LOCK YARDIMCILARI
+        // setGroupLocked(true)  → input + buton devre dışı, Enter çalışmaz
+        // setGroupLocked(false) → kilit açılır, odak input'a verilir
+        // scheduleGroup(fn, ms) → önceki planlanmış timeout iptal edilir,
+        //                         yenisi planlanır ve kilit kapatılır
+        // ============================================================
+        function setGroupLocked(locked) {
+            groupLocked = locked;
+            const input = document.getElementById('groupLetterInput');
+            const btn   = document.getElementById('groupGuessBtn');
+            if (input) input.disabled = locked;
+            if (btn)   btn.disabled   = locked;
+            if (!locked && input) input.focus();
+        }
+
+        function scheduleGroup(fn, ms) {
+            // Daha önce planlanmış bir tur geçişi varsa iptal et
+            if (groupTurnTimeoutId !== null) {
+                clearTimeout(groupTurnTimeoutId);
+                groupTurnTimeoutId = null;
+            }
+            setGroupLocked(true);
+            groupTurnTimeoutId = setTimeout(() => {
+                groupTurnTimeoutId = null;
+                fn(); // nextPlayer veya newGroupGame çalışır, içinde kilit açılır
+            }, ms);
+        }
+
+        // ============================================================
+        // GRUP MODU
+        // ============================================================
+        function groupGuessLetter() {
+            // Guard 1: turn-lock aktifse hem buton hem Enter engellenir
+            if (groupLocked) return;
+
+            const input = document.getElementById('groupLetterInput');
+            const letter = normalizeTurkish(input.value);
+            input.value = '';
+            input.focus();
+
+            // Guard 2: geçersiz harf
+            if (!letter || !isValidTurkishLetter(letter)) {
+                showGroupMessage('❌ Geçerli Türkçe harf girin! (A-Z, Ç,Ğ,İ,Ö,Ş,Ü)', 'error');
+                return;
+            }
+
+            // Guard 3: bu turda zaten denendi
+            if (groupGuessedLetters.has(letter)) {
+                showGroupMessage(`⚠️ "${letter}" bu turda zaten denendi!`, 'info');
+                return;
+            }
+            groupGuessedLetters.add(letter);
+            updateGroupGuessedLettersDisplay(); // ← yeni: her tahminde güncelle
+
+            const currentPlayer = players[currentPlayerIndex];
+
+            if (currentWord.includes(letter)) {
+                let foundCount = 0;
+                for (let i = 0; i < currentWord.length; i++) {
+                    if (currentWord[i] === letter) {
+                        displayWord[i] = letter;
+                        foundCount++;
+                    }
+                }
+                currentPlayer.score += foundCount * 20;
+                updatePlayersDisplay();
+                updateDisplay();
+
+                if (!displayWord.includes('_')) {
+                    showGroupMessage(`🏆 ${currentPlayer.name} kelimeyi buldu!`, 'success');
+                    scheduleGroup(() => showScoreModal(currentPlayer.name), 1500); // ← modal göster
+                    return;
+                }
+                showGroupMessage(`✅ ${currentPlayer.name}: ${foundCount} harf buldu! +${foundCount * 20} puan`, 'success');
+                scheduleGroup(nextPlayer, 1500);
+            } else {
+                groupAttempts--;
+                showGroupMessage(`❌ ${currentPlayer.name}: Yanlış! Kalan deneme: ${groupAttempts}`, 'error');
+                if (groupAttempts === 0) {
+                    showGroupMessage(`⏭️ Deneme hakkı bitti! Kelime: "${currentWord}"`, 'error');
+                    scheduleGroup(() => showScoreModal(null), 1500); // ← modal göster
+                    return;
+                }
+                scheduleGroup(nextPlayer, 1500);
+            }
+        }
+
+        function nextPlayer() {
+            currentPlayerIndex = (currentPlayerIndex + 1) % players.length;
+            const current = players[currentPlayerIndex];
+            showGroupMessage(`🎯 ${current.name}'in sırası!`, 'info');
+            updatePlayersDisplay();
+            setGroupLocked(false); // tur teslim edildi, kilit aç
+        }
+
+        function initGroupMode() {
+            updatePlayersDisplay();
+            newGroupGame();
+        }
+
+        function updatePlayersDisplay() {
+            const container = document.getElementById('playersContainer');
+            container.innerHTML = players.map((player, index) =>
+                `<div class="player-score ${index === currentPlayerIndex ? 'active' : ''}">
+                    ${player.name}<br><strong>${player.score} puan</strong>
+                </div>`
+            ).join('');
+        }
+
+        // ============================================================
+        // ✅ FIX 7: newGroupGame — 3 kritik hata düzeltildi
+        //   1) players dizisi doğru kullanıldı: players[currentPlayerIndex]
+        //   2) querySelectorAll NodeList hatası kaldırıldı (updatePlayersDisplay halleder)
+        //   3) groupAttempts sıfırlandı
+        // ============================================================
+        function newGroupGame() {
+            // Önceki planlanmış timeout varsa iptal et (manuel "Yeni Oyun" tıklamasına karşı)
+            if (groupTurnTimeoutId !== null) {
+                clearTimeout(groupTurnTimeoutId);
+                groupTurnTimeoutId = null;
+            }
+            currentLevel = ['easy', 'medium', 'hard'][Math.floor(Math.random() * 3)];
+            currentWord = getRandomWord();
+            initDisplay();
+            updateHint();
+            groupAttempts = 8;
+            currentPlayerIndex = 0;
+            groupGuessedLetters = new Set();
+            updateGroupGuessedLettersDisplay(); // göstergeyi temizle
+            updatePlayersDisplay();
+            const currentPlayer = players[currentPlayerIndex] || { name: 'Oyuncu 1' };
+            showGroupMessage(`🎮 ${currentPlayer.name} oyunu başlatıyor!`, 'info');
+            setGroupLocked(false); // yeni oyun başladı, her türlü kilidi kaldır
+        }
+
+        function newGame() {
+            currentLevel = Math.random() < 0.4 ? 'easy' : Math.random() < 0.7 ? 'medium' : 'hard';
+            currentWord = getRandomWord();
+            initDisplay();
+            updateHint();
+            attempts = currentLevel === 'hard' ? 8 : 10;
+            score = 0;
+            correctGuesses = 0;
+            gameActive = true;
+            guessedLetters = new Set();
+            updateGuessedLettersDisplay();
+            updateScore();
+            updateAttempts();
+            updateLevel();
+            startTimer(); // ← zamanlayıcı başlat
+            const msg = document.getElementById('message');
+            msg.className = 'message';
+            msg.textContent = '';
+            document.getElementById('letterInput').focus();
+        }
+
+        function checkLevelUp() {
+            if (correctGuesses >= 15 && currentLevel === 'easy') currentLevel = 'medium';
+            else if (correctGuesses >= 30 && currentLevel === 'medium') currentLevel = 'hard';
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+            document.getElementById('correct').textContent = correctGuesses;
+        }
+
+        function updateAttempts() {
+            document.getElementById('attempts').textContent = attempts;
+        }
+
+        function updateLevel() {
+            const levels = { easy: 'Kolay', medium: 'Orta', hard: 'Zor' };
+            document.getElementById('level').textContent = levels[currentLevel];
+        }
+
+        function showMessage(text, type) {
+            const el = document.getElementById('message');
+            el.textContent = text;
+            el.className = `message ${type} fade-in`;
+        }
+
+        function showGroupMessage(text, type) {
+            const el = document.getElementById('groupMessage');
+            el.textContent = text;
+            el.className = `message ${type} fade-in`;
+        }
+    </script>
+</body>
+</html>
