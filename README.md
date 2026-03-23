@@ -28,5 +28,5 @@ Türkçe karakter destekli, tek ve çok oyunculu oynanabilen eğlenceli bir keli
 ## 📌 Kurulum
 Projeyi çalıştırmak için:
 ```bash
-Github:git clone <repo-link>file:///https://github.com/gencercansuu-creator/game-project.git
-https://game-project-sepia.vercel.app/
+
+https://game-project-sepia.vercel.app
