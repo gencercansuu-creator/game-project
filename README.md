@@ -29,3 +29,4 @@ Türkçe karakter destekli, tek ve çok oyunculu oynanabilen eğlenceli bir keli
 Projeyi çalıştırmak için:
 ```bash
 C:/Users/Handan%20Gencer/Downloads/kelime-avi%20(1).html(Bu yapay zeka aracı üzerinden oluşturduğum dosya linki)                                                      Github:git clone <repo-link>file:///https://github.com/gencercansuu-creator/game-project.git
+AI linki açılmazsa:https://drive.google.com/file/d/1uOu2z4BwKlRGTi8cgMsWRVfEOqT3mvX8/view?usp=drivesdk
