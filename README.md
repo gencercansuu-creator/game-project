@@ -29,4 +29,5 @@ Türkçe karakter destekli, tek ve çok oyunculu oynanabilen eğlenceli bir keli
 Projeyi çalıştırmak için:
 ```bash
 Github:git clone <repo-link>file:///https://github.com/gencercansuu-creator/game-project.git
+game-project-iu67y3gk1-gencercansuu-creators-projects.vercel.app
 
