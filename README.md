@@ -7,7 +7,6 @@ Türkçe karakter destekli, tek ve çok oyunculu oynanabilen eğlenceli bir keli
 - 👥 Tek oyunculu ve çok oyunculu mod
 - ⏱️ Süreye karşı yarış
 - 💡 İpucu sistemi
-- 🏆 Skor kaydetme
 
 ## 🕹️ Nasıl Oynanır?
 1. Gizli kelimeyi tahmin etmeye çalış
